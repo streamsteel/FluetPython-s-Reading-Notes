@@ -1,0 +1,346 @@
+很久没用git了，顺便记录一下Git的常用命令。
+常学常用，方能进步。
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+git init  　　　　　　　　　创建repository
+
+git add readme.txt 　　　git add命令实际上就是把要提交的所有修改放到暂存区（Stage）
+
+add所有文件：git add .
+
+add并rm所有：git add -A
+
+提交modify和rm（新加的文件不会自动提交）：git commit -a
+
+git commit -m "log"　　　提交到master，添加log内容
+
+git status 查看repository 状态
+
+git diff readme.txt　　　　查看修改内容
+
+git log (--prety=oneline)　查看log，后面参数可选
+
+ 
+
+git reset --hard HEAD^　 回退上个版本（HEAD指向master的指针，^个数表示上几个版本）
+
+git reset --hard HEAD~100 回退n个版本
+
+git reset --hard 3628164　　回退到commit为3628164版本
+
+git reflog　　　　　　　　　查看每一次命令
+
+ 
+
+git checkout --readme.txt 把readme.txt文件在工作区的修改全部撤销
+
+这里有两种情况：
+
+一种是readme.txt自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
+
+一种是readme.txt已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+
+git checkout -- file命令中的“--”很重要，没有“--”，就变成了“创建一个新分支”的命令
+
+ 
+
+git reset HEAD readme.txt 可以把暂存区的修改撤销掉（unstage），重新放回工作区
+
+ 
+
+git rm readme.txt　　　　从版本库中删除文件
+
+git checkout -- readme.txt 如果在文件管理器中误删了文件，因为版本库里还有呢，可以用这句恢复
+
+ 
+
+关联一个远程库，使用命令git remote add origin https://github.com/HelloGabo/MyUnityTest.git
+
+关联后，使用命令git push -u origin master第一次推送master分支的所有内容
+
+每次本地提交后，只要有必要，就可以使用命令git push origin master推送最新修改
+
+
+克隆repository。创建一个空的repository，然后用命令
+
+git clone https://github.com/HelloGabo/gitskills.git
+
+将现在的repository克隆进去
+
+ 
+
+分支：
+
+查看分支：git branch
+
+创建分支：git branch name
+
+切换分支：git checkout name
+
+创建+切换分支：git checkout -b name
+
+ 
+
+合并某分支到当前分支：git merge name（Fast forward模式，这种模式下删除分支后，会丢失分支信息）
+
+ -no-ff参数，表示禁用“Fast forward”  会在merge时生成一个新的commit，这样，从分支历史上就可以看出分支信息。
+
+git merge --no-ff -m "merge with no-ff" dev  
+
+ 
+
+删除分支：git branch -d name
+
+git branch -D branch-name 强行删除分支（当在分支上修改后，不想并入其他分支，想删掉，就要强行删除）
+
+ 
+
+解决分支合并产生的冲突：
+
+手动修改冲突后提交就行
+
+git log --graph 命令可以看到分支合并图
+
+eg：git log --graph --pretty=oneline --abbrev-commit
+
+ 
+
+当你接到一个修复一个代号101的bug的任务时，很自然地，你想创建一个分支issue -101来修复它，但是，等等，当前正在dev上进行的工作还没有提交
+
+stash功能，可以把当前工作现场“储藏”起来，等以后恢复现场后继续工作：git stash（有修改还没add并commit的时候调用后，现场保留，分支清空）
+
+git stash list命令查看工作现场
+
+恢复有两个办法：
+
+一是用git stash apply恢复，但是恢复后，stash内容并不删除，你需要用git stash drop来删除；
+
+另一种方式是用git stash pop，恢复的同时把stash内容也删了
+
+ 
+
+查看远程库的信息，用git remote
+
+git remote -v显示更详细的信息
+
+$ git remote -v
+origin https://github.com/HelloGabo/MyUnityTest.git (fetch)　　抓取
+origin https://github.com/HelloGabo/MyUnityTest.git (push)　　推送
+
+显示了可以抓取和推送的origin的地址。如果没有推送权限，就看不到push的地址
+
+ 
+
+推送分支
+
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
+
+git push origin master
+
+如果要推送其他分支，比如dev，就改成：
+
+git push orgin dev
+
+ 
+
+抓取分支
+
+小伙伴要在dev分支上开发，就必须创建远程origin的dev分支到本地，于是他用这个命令创建本地dev分支：
+
+git checkout -b dev origin/dev
+
+现在，就可以在dev上继续修改，然后，时不时地把dev分支push到远程：
+
+git push origin dev
+
+碰巧你也对同样的文件作了修改，并试图推送：推送失败，因为你的小伙伴的最新提交和你试图推送的提交有冲突
+
+先用git pull把最新的提交从origin/dev抓下来，然后，在本地合并，解决冲突，再推送
+
+git pull
+
+失败了，原因是没有指定本地dev分支与远程origin/dev分支的链接，根据提示，设置dev和origin/dev的链接：
+
+git branch --set-upstream dev origin/dev
+
+再pull就行了，但合并会有冲突。需要手动解决
+
+ 
+
+标签管理
+
+发布一个版本时，我们通常先在版本库中打一个标签，这样，就唯一确定了打标签时刻的版本。将来无论什么时候，取某个标签的版本，就是把那个打标签的时刻的历史版本取出来。所以，标签也是版本库的一个快照。
+
+Git的标签虽然是版本库的快照，但其实它就是指向某个commit的指针（跟分支很像对不对？但是分支可以移动，标签不能移动），所以，创建和删除标签都是瞬间完成的。
+
+创建标签
+
+切换到需要打标签的分支上git checkout dev
+
+1、敲命令git tag name就可以打一个新标签：git tag v1.0
+
+2、git tag查看所有标签
+
+默认标签是打在最新提交的commit上的。有时候，如果忘了打标签，比如，现在已经是周五了，但应该在周一打的标签没有打，怎么办？
+
+方法是找到历史提交的commit id，然后打上就可以了：
+
+git log --pretty=oneline --abbrev-commit
+
+对应的commit id是“ef51d63”，敲入命令git tag v0.9 ef51d63
+
+3、可以用git show tagname查看标签信息：git show v0.9
+
+4、可以创建带有说明的标签，用-a指定标签名，-m指定说明文字：
+
+git tag -a v0.1 -m "version 0.1 released" 02172e4
+
+5、可以通过-s用私钥签名一个标签：git tag -s v0.2 -m "signed version 0.2 released" a8093be
+
+签名采用PGP签名，因此，必须首先安装gpg（GnuPG），如果没有找到gpg，或者没有gpg密钥对，就会报错
+
+用命令git show tagname可以看到PGP签名信息
+
+用PGP签名的标签是不可伪造的，因为可以验证PGP签名。验证签名的方法比较复杂
+
+ 
+
+操作标签
+
+标签打错了，也可以删除：git tag -d v1.0
+
+推送某个标签到远程，使用命令git push origin tagname：
+
+一次性推送全部尚未推送到远程的本地标签：git push origin --tags
+
+从远程删除。删除命令也是git push origin :refs/tags/tagname
+
+ 
+
+忽略特殊文件
+
+有些时候，你必须把某些文件放到Git工作目录中，但又不能提交它们，比如保存了数据库密码的配置文件啦，等等，每次git status都会显示“Untracked files ...”
+
+这个问题解决起来也很简单，在Git工作区的根目录下创建一个特殊的.gitignore文件，然后把要忽略的文件名填进去，Git就会自动忽略这些文件
+
+不需要从头写.gitignore文件，GitHub已经为我们准备了各种配置文件，只需要组合一下就可以使用了。所有配置文件可以直接在线浏览：https://github.com/github/gitignore
+
+最后一步就是把.gitignore也提交到Git
+
+比如，忽略Python编译产生的.pyc、.pyo、dist等文件或目录：
+
+# Python:
+
+*.py[cod]
+
+*.so
+
+*.egg
+
+*.egg-info
+
+dist
+
+build
+
+使用Windows的童鞋注意了，如果你在资源管理器里新建一个.gitignore文件，它会非常弱智地提示你必须输入文件名，但是在文本编辑器里“保存”或者“另存为”就可以把文件保存为.gitignore了。
+
+Git 中的文件忽略
+1. 共享式忽略新建 .gitignore 文件，放在工程目录任意位置即可。.gitignore 文件可以忽略自己。忽略的文件，只针对未跟踪文件有效，对已加入版本库的文件无效。
+2. 独享式忽略针对具体版本库 ：.git/info/exclude针对本地全局：  git config --global core.excludefile ~/.gitignore
+忽略的语法规则：
+(#)表示注释
+(*)  表示任意多个字符; 
+(?) 代表一个字符;
+ ([abc]) 代表可选字符范围
+如果名称最前面是路径分隔符 (/) ，表示忽略的该文件在此目录下。
+如果名称的最后面是 (/) ，表示忽略整个目录，但同名文件不忽略。
+通过在名称前面加 (!) ，代表不忽略。
+例子如下：
+# 这行是注释
+*.a                   # 忽略所有 .a 伟扩展名的文件
+!lib.a                # 但是 lib.a 不忽略，即时之前设置了忽略所有的 .a
+/TODO            # 只忽略此目录下 TODO 文件，子目录的 TODO 不忽略 
+build/               # 忽略所有的 build/ 目录下文件
+doc/*.txt           # 忽略如 doc/notes.txt, 但是不忽略如 doc/server/arch.txt 
+
+配置别名
+
+如果敲git st就表示git status那就简单多了
+
+1、只需要敲一行命令，告诉Git，以后st就表示status：git config --global alias.st status
+
+-2、-global参数是全局参数，也就是这些命令在这台电脑的所有Git仓库下都有用。
+
+3、命令git reset HEAD file可以把暂存区的修改撤销掉（unstage），重新放回工作区。既然是一个unstage操作，就可以配置一个unstage别名：
+
+git config --global alias.unstage 'reset HEAD'
+
+敲入命令：git unstage test.py
+
+实际上Git执行的是：git reset HEAD test.py
+
+4、配置一个git last，让其显示最后一次提交信息：git config --global alias.last 'log -l'
+
+用git last就能显示最近一次的提交
+
+甚至还有人丧心病狂地把lg配置成了：
+
+git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+搭建git服务器
+
+搭建Git服务器需要准备一台运行Linux的机器，强烈推荐用Ubuntu或Debian，这样，通过几条简单的apt命令就可以完成安装。
+
+假设你已经有sudo权限的用户账号，下面，正式开始安装。
+
+第一步，安装git：sudo apt-get install git
+
+第二步，创建一个git用户，用来运行git服务：sudo adduser git
+
+第三步，创建证书登录：
+
+收集所有需要登录的用户的公钥，就是他们自己的id_rsa.pub文件，把所有公钥导入到/home/git/.ssh/authorized_keys文件里，一行一个。
+
+第四步，初始化Git仓库：
+
+先选定一个目录作为Git仓库，假定是/srv/sample.git，在/srv目录下输入命令：sudo git init --bare sample.git
+
+Git就会创建一个裸仓库，裸仓库没有工作区，因为服务器上的Git仓库纯粹是为了共享，所以不让用户直接登录到服务器上去改工作区，并且服务器上的Git仓库通常都以.git结尾。然后，把owner改为git：
+
+sudo chown -R git:git sample.git
+
+第五步，禁用shell登录：
+
+出于安全考虑，第二步创建的git用户不允许登录shell，这可以通过编辑/etc/passwd文件完成。找到类似下面的一行：
+
+git:x:1001:1001,,,:/home/git:/bin/bash
+
+改为：
+
+git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+
+这样，git用户可以正常通过ssh使用git，但无法登录shell，因为我们为git用户指定的git-shell每次一登录就自动退出。
+
+第六步，克隆远程仓库：
+
+现在，可以通过git clone命令克隆远程仓库了，在各自的电脑上运行：
+
+git clone git@server:/srv/sample.git
+
+剩下的推送就简单了
+
+ 
+
+管理公钥
+
+如果团队很小，把每个人的公钥收集起来放到服务器的/home/git/.ssh/authorized_keys文件里就是可行的。如果团队有几百号人，就没法这么玩了，这时，可以用Gitosis来管理公钥。
+
+这里我们不介绍怎么玩Gitosis了，几百号人的团队基本都在500强了，相信找个高水平的Linux管理员问题不大。
+
+ 
+
+管理权限
+
+有很多不但视源代码如生命，而且视员工为窃贼的公司，会在版本控制系统里设置一套完善的权限控制，每个人是否有读写权限会精确到每个分支甚至每个目录下。因为Git是为Linux源代码托管而开发的，所以Git也继承了开源社区的精神，不支持权限控制。不过，因为Git支持钩子（hook），所以，可以在服务器端编写一系列脚本来控制提交等操作，达到权限控制的目的。Gitolite就是这个工具。
